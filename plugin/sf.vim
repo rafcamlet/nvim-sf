@@ -1,0 +1,15 @@
+" Last Change:  ?
+" Maintainer:   Rafał Camlet <raf.camlet@gmail.com>
+" License:      GNU General Public License v3.0
+
+if exists('g:loaded_nvim_sf') | finish | endif " prevent loading file twice
+
+let s:save_cpo = &cpo
+set cpo&vim
+
+command! -nargs=1 SF lua require'sf'.sf(<q-args>)
+
+let &cpo = s:save_cpo
+unlet s:save_cpo
+
+let g:loaded_nvim_sf = 1
