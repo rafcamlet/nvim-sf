@@ -7,6 +7,8 @@ if exists('g:loaded_nvim_sf') | finish | endif " prevent loading file twice
 let s:save_cpo = &cpo
 set cpo&vim
 
+hi SuperFindRed ctermfg=9
+
 command! -nargs=1 SF lua require'sf'.sf(<q-args>)
 
 let &cpo = s:save_cpo
