@@ -8,6 +8,7 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 hi SuperFindRed ctermfg=9
+hi SuperFindGreen ctermfg=10
 
 command! -nargs=1 SF lua require'sf'.sf(<q-args>)
 
