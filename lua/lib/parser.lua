@@ -48,7 +48,8 @@ function Parser:begin(line)
   table.insert(self.data, {
     type  = 'begin',
     text  = line['data']['path']['text'],
-    value = line['data']['path']['text']
+    value = line['data']['path']['text'],
+    path  = line['data']['path']['text']
   })
 
   self.files_count = self.files_count + 1
@@ -73,6 +74,7 @@ function Parser:match(line)
     value = value,
     line_nr = line_nr,
     text = text,
+    path  = line['data']['path']['text'],
     submatches = line['data']['submatches']
   })
   self.match_count = self.match_count + 1
@@ -85,7 +87,8 @@ function Parser:context(line)
     type = 'context',
     value = value,
     line_nr = line_nr,
-    text = text
+    text = text,
+    path  = line['data']['path']['text']
   })
 end
 

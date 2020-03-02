@@ -20,10 +20,16 @@ local function onexit()
   window.color('SuperFindGreen', 0, 0, -1)
 end
 
+local function enter()
+  local line = api.nvim_win_get_cursor(0)
+  p(parser.data[line[1] - 1])
+end
+
 local function sf(arg)
   collectgarbage()
   window.open_or_focus()
   window.clear_color()
+  window.set_mapping('<cr>', 'enter()')
   parser = Parser:new()
   loop.call('rg', {
       arg,
@@ -35,5 +41,6 @@ local function sf(arg)
 end
 
 return {
-  sf = sf
+  sf = sf,
+  enter = enter
 }

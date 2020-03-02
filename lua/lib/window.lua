@@ -62,6 +62,12 @@ local function open_or_focus()
   end
 end
 
+local function set_mapping(k, v)
+  api.nvim_buf_set_keymap(buf, 'n', k, ':lua require"sf".'..v..'<cr>', {
+    nowait = true, noremap = true, silent = true
+  })
+end
+
 return {
   append = append,
   open = open,
@@ -69,5 +75,6 @@ return {
   set = set,
   color = color,
   open_or_focus = open_or_focus,
-  clear_color = clear_color
+  clear_color = clear_color,
+  set_mapping = set_mapping
 }
