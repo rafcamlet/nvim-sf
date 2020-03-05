@@ -1,17 +1,36 @@
 local api = vim.api
 local loop = vim.loop
 
-local handle, stdout, stderr, stdin
+local handle, stdout, stderr, stdin, pid
+local working = false
+
+local function close(onexit)
+  if not working then return end
+  working = false
+
+  stdout:read_stop()
+  loop.kill(pid, 9)
+  stderr:read_stop()
+  stdin:shutdown()
+  stdout:close()
+  stderr:close()
+  handle:close()
+  if onexit then
+    vim.schedule_wrap(function() onexit() end)
+  end
+end
 
 function call(cmd, args, onread, onexit)
   stdout = loop.new_pipe(false)
   stderr = loop.new_pipe(false)
   stdin  = loop.new_pipe(false)
+  working = true
 
-  handle = vim.loop.spawn(cmd, {
+  handle, pid = vim.loop.spawn(cmd, {
     args = args,
     stdio = {stdin, stdout, stderr},
   }, vim.schedule_wrap(function()
+    working = false
     stdin:shutdown()
     stdout:read_stop()
     stderr:read_stop()
@@ -34,5 +53,6 @@ function call(cmd, args, onread, onexit)
 end
 
 return {
-  call = call
+  call = call,
+  close = close
 }

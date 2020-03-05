@@ -60,9 +60,9 @@ local function parse_line(line)
   local line_nr = line['data']['line_number']
 
   if string.len(line_nr) < indent then
-    line_nr = line_nr .. string.rep(' ', indent - string.len(line_nr))
+    iline_nr = line_nr .. string.rep(' ', indent - string.len(line_nr))
   end
-  local text = line_nr .. ' ' .. value
+  local text = iline_nr .. ' ' .. value
   return value, line_nr, text
 end
 

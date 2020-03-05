@@ -22,14 +22,39 @@ end
 
 local function enter()
   local line = api.nvim_win_get_cursor(0)
-  p(parser.data[line[1] - 1])
+  local data = parser.data[line[1] - 1]
+  local win = window.getoldwin()
+
+  api.nvim_set_current_win(win)
+  api.nvim_command('e ' .. data['path'])
+  api.nvim_win_set_cursor(win, {data.line_nr, 0})
+  api.nvim_command('normal! zz')
+end
+
+local function quit()
+  print 'wow'
+  loop.close()
+  window.close()
+end
+
+local function stop()
+  print 'asdf'
+  loop.close(function()
+    window.set({
+        'Match count: ' .. parser.match_count .. ' in ' .. parser.files_count .. ' files - Stopped!',
+      }, 0, 1)
+    window.color('SuperFindRed', 0, 0, -1)
+  end)
 end
 
 local function sf(arg)
   collectgarbage()
   window.open_or_focus()
-  window.clear_color()
+
   window.set_mapping('<cr>', 'enter()')
+  window.set_mapping('q', 'quit()')
+  window.set_mapping('<c-c>', 'stop()')
+
   parser = Parser:new()
   loop.call('rg', {
       arg,
@@ -42,5 +67,7 @@ end
 
 return {
   sf = sf,
-  enter = enter
+  enter = enter,
+  quit = quit,
+  stop = stop
 }
