@@ -2,22 +2,25 @@ local window = require 'lib/window'
 local loop = require 'lib/loop'
 local Parser = require 'lib/parser'
 local api = vim.api
+local clock = 0
 
 local parser
 
 local function onread(data)
-  local buf = window.getbuf()
   local l_parser = Parser.new()
   l_parser:parse(data)
   l_parser:draw()
 
   parser:merge(l_parser)
   window.set({'Match count: ' .. parser.match_count .. ' in ' .. parser.files_count .. ' files'}, 0, 1)
+  window.set({ tostring(os.clock() - clock ) }, 1, 2)
 end
 
 local function onexit()
   window.set({'Match count: ' .. parser.match_count .. ' in ' .. parser.files_count .. ' files - Done!'}, 0, 1)
   window.color('SuperFindGreen', 0, 0, -1)
+  window.color('SuperFindGreen', 1, 0, -1)
+  collectgarbage()
 end
 
 local function enter()
@@ -27,28 +30,30 @@ local function enter()
 
   api.nvim_set_current_win(win)
   api.nvim_command('e ' .. data['path'])
-  api.nvim_win_set_cursor(win, {data.line_nr, 0})
-  api.nvim_command('normal! zz')
+  if data.line_nr then
+    api.nvim_win_set_cursor(win, {data.line_nr, 0})
+    api.nvim_command('normal! zz')
+  end
 end
 
 local function quit()
-  print 'wow'
-  loop.close()
-  window.close()
+  if loop.is_working() then
+    loop.close(window.close)
+  else
+    window.close()
+  end
 end
 
 local function stop()
-  print 'asdf'
   loop.close(function()
-    window.set({
-        'Match count: ' .. parser.match_count .. ' in ' .. parser.files_count .. ' files - Stopped!',
-      }, 0, 1)
+    local status = 'Match count: ' .. parser.match_count .. ' in ' .. parser.files_count .. ' files - Stopped!'
+    window.set({ status }, 0, 1)
     window.color('SuperFindRed', 0, 0, -1)
   end)
 end
 
 local function sf(arg)
-  collectgarbage()
+  clock = os.clock()
   window.open_or_focus()
 
   window.set_mapping('<cr>', 'enter()')

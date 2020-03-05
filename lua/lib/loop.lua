@@ -7,20 +7,39 @@ local working = false
 local function close(onexit)
   if not working then return end
   working = false
-
   stdout:read_stop()
-  loop.kill(pid, 9)
   stderr:read_stop()
+  loop.kill(pid, 9)
   stdin:shutdown()
   stdout:close()
   stderr:close()
   handle:close()
   if onexit then
-    vim.schedule_wrap(function() onexit() end)
+    vim.schedule(onexit)
   end
 end
 
-function call(cmd, args, onread, onexit)
+local function on_exit(callback)
+  return vim.schedule_wrap(function()
+    working = false
+    stdin:shutdown()
+    stdout:read_stop()
+    stderr:read_stop()
+    stdout:close()
+    stderr:close()
+    handle:close()
+    if callback then callback() end
+  end)
+end
+
+local function on_read(callback)
+  return vim.schedule_wrap(function(err, data)
+    if err then error(err) end
+    if data then callback(vim.split(data, "\n")) end
+  end)
+end
+
+function call(cmd, args, on_read_callback, on_exit_callback)
   stdout = loop.new_pipe(false)
   stderr = loop.new_pipe(false)
   stdin  = loop.new_pipe(false)
@@ -29,30 +48,20 @@ function call(cmd, args, onread, onexit)
   handle, pid = vim.loop.spawn(cmd, {
     args = args,
     stdio = {stdin, stdout, stderr},
-  }, vim.schedule_wrap(function()
-    working = false
-    stdin:shutdown()
-    stdout:read_stop()
-    stderr:read_stop()
-    stdout:close()
-    stderr:close()
-    handle:close()
-    if onexit then
-      onexit()
-    end
-  end))
+  }, on_exit(on_exit_callback))
 
-  loop.read_start(stdout, vim.schedule_wrap(function(err, data)
-    if err then error(err) end
-    if data then onread(vim.split(data, "\n")) end
-  end))
-  loop.read_start(stderr, vim.schedule_wrap(function(err, data)
-    if err then error(err) end
-    if data then onread(vim.split(data, "\n")) end
-  end))
+  read_function = on_read(on_read_callback)
+
+  loop.read_start(stdout, read_function)
+  loop.read_start(stderr, read_function)
+end
+
+local function is_working()
+  return working
 end
 
 return {
   call = call,
-  close = close
+  close = close,
+  is_working = is_working
 }
