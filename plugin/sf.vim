@@ -10,7 +10,7 @@ set cpo&vim
 hi SuperFindRed ctermfg=9
 hi SuperFindGreen ctermfg=10
 
-command! -nargs=1 SF lua require'sf'.sf(<q-args>)
+command! -complete=dir -nargs=1 SF lua require'sf'.sf(<q-args>)
 
 let &cpo = s:save_cpo
 unlet s:save_cpo

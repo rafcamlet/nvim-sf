@@ -1,9 +1,9 @@
 local window = require 'lib/window'
 local loop = require 'lib/loop'
 local Parser = require 'lib/parser'
+local parse_args = require 'lib/args'.parse_args
 local api = vim.api
 local clock = 0
-
 local parser
 
 local function onread(data)
@@ -52,7 +52,9 @@ local function stop()
   end)
 end
 
-local function sf(arg)
+local function sf(args)
+  local args = parse_args(args)
+
   clock = os.clock()
   window.open_or_focus()
 
@@ -61,13 +63,17 @@ local function sf(arg)
   window.set_mapping('<c-c>', 'stop()')
 
   parser = Parser:new()
-  loop.call('rg', {
-      arg,
-      '-iPn',
-      '--max-columns=500',
-      '-C=3',
-      '--json',
-    }, onread, onexit)
+
+  cmd_args = {
+    args['pattern'],
+    '-iPn',
+    '--max-columns=500',
+    '-C=3',
+    '--json'
+  }
+  if args['path'] then table.insert(cmd_args, args['path']) end
+
+  loop.call('rg', cmd_args, onread, onexit)
 end
 
 return {
