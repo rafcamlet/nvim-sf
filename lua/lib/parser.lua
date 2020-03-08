@@ -1,17 +1,16 @@
 local Parser = {}
 Parser.__index = Parser
 
-local log         = require 'lib/log'
 local window      = require 'lib/window'
 local api         = vim.api
 local json_decode = vim.fn.json_decode
 
 local indent = 5
 
-log.usecolor = false
-log.level = "debug"
+-- log.usecolor = false
+-- log.level = "debug"
 -- log.level = "fatal"
-log.outfile = 'sf.log'
+-- log.outfile = 'sf.log'
 
 function Parser:new()
   local obj = {
@@ -32,24 +31,16 @@ end
 
 function Parser:parse(data)
   for _, json in ipairs(data) do
-    local result, error = pcall(function()
-      log.trace(json)
+    local success, error = pcall(function()
       if string.len(json) > 0 then
         local line = json_decode(json)
-        log.trace(line)
-
         if     line['type'] == 'begin'   then self:begin(line)
         elseif line['type'] == 'match'   then self:match(line)
         elseif line['type'] == 'context' then self:context(line)
         end
       end
     end)
-    if error then
-      log.debug(error)
-      log.debug(result)
-      log.debug(json)
-      log.debug('==============')
-    end
+    if not success then p(error) end
   end
 end
 
@@ -77,6 +68,10 @@ local function parse_line(line)
   if string.len(line_nr) < indent then
     iline_nr = line_nr .. string.rep(' ', indent - string.len(line_nr))
   end
+  if string.len(value) > 500 then
+    value = value:sub(0, 500) .. '...'
+  end
+
   local text = iline_nr .. ' ' .. value
   return value, line_nr, text
 end

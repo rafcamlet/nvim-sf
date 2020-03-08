@@ -63,7 +63,8 @@ for i, x in ipairs(modes) do
 
     local msg = tostring(vim.inspect(...))
     local info = debug.getinfo(2, "Sl")
-    local lineinfo = info.short_src .. ":" .. info.currentline
+    local file = info.short_src:match('/([^/]*)$')
+    local lineinfo = file .. ":" .. info.currentline
 
     -- Output to console
     print(string.format("%s[%-6s%s]%s %s: %s",
