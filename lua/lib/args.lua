@@ -1,10 +1,10 @@
 local modes = {
-  f = 'f'
+  f = 'f',
+  w = 'w'
 }
 
--- based on https://stackoverflow.com/questions/28664139/lua-split-string-into-words-unless-quoted
-
 local function parse(text)
+-- based on https://stackoverflow.com/questions/28664139/lua-split-string-into-words-unless-quoted
   local result = {}
   local e = 0
   while true do
