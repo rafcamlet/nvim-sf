@@ -45,7 +45,7 @@ local function parse_args(cmd)
   end
 
   result['mode'] = mode
-  result['path'] = table.remove(args, 1)
+  result['mode_args'] = args
   return result
 end
 

@@ -116,8 +116,11 @@ local function sf(cmd)
   }
 
   if args['mode'] == 'f' then
-    loop.single('fd', {args['path'], '-ptf'}, function(files)
-      table.insert(cmd_args, vim.trim(table.concat(files, " ")))
+    table.insert(args['mode_args'], '-ptf')
+    loop.single('fd', args['mode_args'], function(files)
+      for i,v in ipairs(files) do
+        if string.len(v) > 0  then table.insert(cmd_args, vim.trim(v)) end
+      end
       loop.call('rg', cmd_args, onread, onexit)
     end)
   else
