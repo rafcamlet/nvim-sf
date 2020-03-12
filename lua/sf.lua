@@ -93,8 +93,8 @@ local function stop()
   end)
 end
 
-local function sf(args)
-  local args = parse_args(args)
+local function sf(cmd)
+  local args = parse_args(cmd)
 
   clock = os.clock()
   window.open_or_focus()
@@ -111,13 +111,19 @@ local function sf(args)
   cmd_args = {
     args['pattern'],
     '-iPn',
-    '--max-columns=500',
     '-C=3',
     '--json'
   }
-  if args['path'] then table.insert(cmd_args, args['path']) end
 
-  loop.call('rg', cmd_args, onread, onexit)
+  if args['mode'] == 'f' then
+    loop.single('fd', {args['path'], '-ptf'}, function(files)
+      table.insert(cmd_args, vim.trim(table.concat(files, " ")))
+      loop.call('rg', cmd_args, onread, onexit)
+    end)
+  else
+    if args['path'] then table.insert(cmd_args, args['path']) end
+    loop.call('rg', cmd_args, onread, onexit)
+  end
 end
 
 return {

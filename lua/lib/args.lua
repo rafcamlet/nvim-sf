@@ -1,22 +1,52 @@
-local function parse_args(args)
-  local pattern, tail, path
+local modes = {
+  f = 'f'
+}
 
-  local args = vim.trim(args)
-  local char = args:match('^%s*(")') or args:match("^%s*(')")
+-- based on https://stackoverflow.com/questions/28664139/lua-split-string-into-words-unless-quoted
 
-  if char then
-    pattern, tail = args:match(char..'(.-)'..char..'(.*)$')
-    if tail and tail:len() > 0 then path = vim.trim(tail) end
-  elseif args:match(' ') then
-    pattern, path = unpack(vim.split(args, ' ', true))
-  else
-    pattern = args
+local function parse(text)
+  local result = {}
+  local e = 0
+  while true do
+    local b = e+1
+    b = text:find("%S",b)
+    if b==nil then break end
+    if text:sub(b,b)=="'" then
+      e = text:find("'",b+1)
+      b = b+1
+    elseif text:sub(b,b)=='"' then
+      e = text:find('"',b+1)
+      b = b+1
+    else
+      e = text:find("%s",b+1)
+    end
+    if e==nil then e=#text+1 end
+    table.insert(result, text:sub(b,e-1))
+  end
+  return result
+end
+
+
+local function parse_args(cmd)
+  local args = parse(cmd)
+  local pattern, next, mode, path
+  local result = {}
+
+  result['pattern'] = table.remove(args, 1)
+  next = table.remove(args, 1)
+
+  if not next then return result end
+
+  mode = modes[next]
+
+  if not mode then
+    result['path'] = next
+    return result
   end
 
-  return {
-    pattern = pattern,
-    path = path
-  }
+  result['mode'] = mode
+  result['path'] = table.remove(args, 1)
+  return result
 end
 
 return {

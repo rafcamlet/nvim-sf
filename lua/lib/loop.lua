@@ -39,7 +39,34 @@ local function on_read(callback)
   end)
 end
 
-function call(cmd, args, on_read_callback, on_exit_callback)
+local function single(cmd, args, callback)
+  local result = {}
+  local single_handle
+
+  local read_function = function(err, data)
+    if err then error(err) end
+    if data then vim.list_extend(result, vim.split(data, "\n")) end
+  end
+
+  local stdo = loop.new_pipe(false)
+  local stde = loop.new_pipe(false)
+
+  single_handle = vim.loop.spawn(cmd, {
+    args = args,
+    stdio = {stdo, stde},
+  }, vim.schedule_wrap(function()
+    stdo:read_stop()
+    stde:read_stop()
+    stdo:close()
+    stde:close()
+    single_handle:close()
+    if callback then callback(result) end
+  end))
+  loop.read_start(stdo, read_function)
+  loop.read_start(stde, read_function)
+end
+
+local function call(cmd, args, on_read_callback, on_exit_callback)
   stdout = loop.new_pipe(false)
   stderr = loop.new_pipe(false)
   stdin  = loop.new_pipe(false)
@@ -63,5 +90,6 @@ end
 return {
   call = call,
   close = close,
-  is_working = is_working
+  is_working = is_working,
+  single = single
 }
